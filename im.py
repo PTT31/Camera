@@ -4,11 +4,12 @@ import time
 import PIL.Image, PIL.ImageTk
 import tkinter.messagebox
 class MyVideoCapture:
+    IsStop = False
     def __init__(self, video_source):
         self.vid = cv2.VideoCapture(video_source)
         self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-
+        
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
@@ -51,4 +52,4 @@ class App:
 #     if event.keysym == 'q':
 #         root.quit()
 
-App(tkinter.Tk(),"CCTV","rtsp://192.168.31.86:8554/mystream")
+#App(tkinter.Tk(),"CCTV","rtsp://192.168.31.86:8554/mystream")
