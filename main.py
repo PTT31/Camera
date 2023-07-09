@@ -18,7 +18,6 @@ class status_webcam():
             print("disconnected!")
             return[self.grabbed,self.frame]
         else:
-            #print("get frame")
             return [self.grabbed,self.frame]
     def status_camera(self):
         a = gui()
@@ -29,10 +28,11 @@ class status_webcam():
                     datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S%p"))
                 while 1:
                     x,frame = self.process_video(camera)
-                    a.frame = frame
+                    a.frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
                     a.x = x
                     if x == False:
                         break
+                    time.sleep(1/30)
             else:
                 print("Camera not opened " +
                     datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S%p"))
@@ -44,6 +44,7 @@ class gui():
     def __init__(self,frame=None,x=False) -> None:
         self.x = x
         self.frame = frame
+        self.fps = 30
         t_show = threading.Thread(target=self.show)
         t_show.start()
     def show(self):
@@ -56,10 +57,10 @@ class gui():
     def update(self):
         if self.x:
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(self.frame))
-            # self.canvas.create_image(0, 0, image = self.photo, anchor = tkinter.NW)
         else:
             self.photo = self.fill_image()
         self.canvas.create_image(0, 0, image = self.photo, anchor = tkinter.NW)
+        time.sleep(1/self.fps)
         self.root.after(1, self.update)
     def fill_image(self):
         a = get_monitors()
