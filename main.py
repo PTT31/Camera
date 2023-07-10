@@ -19,39 +19,41 @@ class status_webcam():
             return[self.grabbed,self.frame]
         else:
             return [self.grabbed,self.frame]
+    def disconect(self):
+        print("Camera not opened " +
+        datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S%p"))
+        self.a.x = False
+        self.a.frame = None
+        self.camera.release()
     def status_camera(self):
-        a = gui()
+        self.a = gui()
         while 1:
-            camera = cv2.VideoCapture(self.adress)
-            if camera.isOpened():
+            self.camera = cv2.VideoCapture(self.adress)
+            if self.camera.isOpened():
                 print("[INFO] Camera connected at " +
                     datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S%p"))
                 while 1:
-                    x,frame = self.process_video(camera)
+                    x,frame = self.process_video(self.camera)
                     try:
-                        a.frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+                        frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
                     except:
+                        self.disconect()
+                        time.sleep(2)
                         break
-                    a.x = x
-                    if x == False:
-                        break
-                    time.sleep(1/30)
-            else:
-                print("Camera not opened " +
-                    datetime.datetime.now().strftime("%m-%d-%Y %I:%M:%S%p"))
-                a.x = False
-                a.frame = None
-                time.sleep(5)
-                camera.release()
+                    else: 
+                        self.a.frame = frame
+                        self.a.x = True
+            self.disconect()
+            time.sleep(5)
             continue
 class gui():
     def __init__(self,frame=None,x=False) -> None:
         self.x = x
         self.frame = frame
         self.fps = 30
+        self.lock = lock
         a = get_monitors()
-        self.rsize = (a[0].width,a[0].height)
-        
+        self.rsize = (a[0].width,a[0].height)      
         t_show = threading.Thread(target=self.show)
         t_show.start()
 
@@ -76,11 +78,12 @@ class gui():
             self.canvas.itemconfig(self.bg,image = self.image_erorr)
             self.canvas.pack(fill="both",expand=True)
             time.sleep(1)      
-            self.root.after(5, self.update)
+            self.root.after(1, self.update)
     def fill_image(self):
         scr_img = PIL.Image.open('colorbar.png')
         return PIL.ImageTk.PhotoImage(scr_img.resize(self.rsize))  
 def status_():
     status_webcam("rtsp://192.168.31.86:8554/mystream")
+lock = threading.Lock()
 t_status = threading.Thread(name="status_camera",target=status_)
 t_status.start()
