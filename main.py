@@ -35,8 +35,9 @@ class status_webcam():
                 while 1:
                     x,frame = self.process_video(self.camera)
                     try:
-                        frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+                        frame = cv2.cvtColor(cv2.resize(frame,self.a.rsize),cv2.COLOR_BGR2RGB)
                     except:
+                        self.a.x = False
                         self.disconect()
                         time.sleep(2)
                         break
@@ -50,14 +51,17 @@ class gui():
     def __init__(self,frame=None,x=False) -> None:
         self.x = x
         self.frame = frame
-        self.fps = 30
+        self.fps = 60
         self.lock = lock
         a = get_monitors()
-        self.rsize = (a[0].width,a[0].height)      
+        self.rsize = (a[0].width,a[0].height)     
+        self.prev_frame_time = 0
+        self.new_frame_time = 0 
         t_show = threading.Thread(target=self.show)
         t_show.start()
 
     def show(self):
+
         self.root = tkinter.Tk()
         self.root.attributes("-fullscreen", True) 
         self.canvas = tkinter.Canvas(self.root)
@@ -67,23 +71,27 @@ class gui():
         self.update()
         self.root.mainloop()
     def update(self):
+        self.new_frame_time = time.time()
+        fps = 1/(self.new_frame_time-self.prev_frame_time)
+        fps = int(fps)
+        fps = str(fps)
+        self.prev_frame_time = self.new_frame_time
         if self.x:
+            cv2.putText(self.frame, fps, (7, 70), cv2.FONT_HERSHEY_SIMPLEX, 3, (100, 255, 0), 3, cv2.LINE_AA)
             self.photo = PIL.ImageTk.PhotoImage(image = PIL.Image.fromarray(self.frame))
             self.canvas.itemconfig(self.bg,image = self.photo)
-            self.canvas.pack(fill="both",expand=True)
-            time.sleep(1/self.fps)
+            # time.sleep(1/self.fps)
             self.root.after(1, self.update)
         else:
             
             self.canvas.itemconfig(self.bg,image = self.image_erorr)
-            self.canvas.pack(fill="both",expand=True)
-            time.sleep(1)      
+            time.sleep(5)      
             self.root.after(1, self.update)
     def fill_image(self):
         scr_img = PIL.Image.open('colorbar.png')
         return PIL.ImageTk.PhotoImage(scr_img.resize(self.rsize))  
 def status_():
-    status_webcam("rtsp://192.168.31.86:8554/mystream")
+    status_webcam("http://127.0.0.1:11470/dd0ae9420a62bfd75e97d2e6b7443c556599c67a/0")
 lock = threading.Lock()
 t_status = threading.Thread(name="status_camera",target=status_)
 t_status.start()
